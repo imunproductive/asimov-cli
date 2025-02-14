@@ -5,7 +5,7 @@
 mod feature;
 
 use clientele::{
-    crates::clap::{Parser, Subcommand},
+    crates::clap::{CommandFactory, Parser, Subcommand},
     exit, StandardOptions,
     SysexitsError::*,
 };
@@ -19,15 +19,19 @@ use std::{
 /// ASIMOV Command-Line Interface (CLI)
 #[derive(Debug, Parser)]
 #[command(name = "ASIMOV", long_about)]
-#[command(subcommand_required = true)]
-#[command(arg_required_else_help = true)]
 #[command(allow_external_subcommands = true)]
+#[command(arg_required_else_help = true)]
+#[command(disable_help_flag = true)]
+#[command(disable_help_subcommand = true)]
 struct Options {
     #[clap(flatten)]
     flags: StandardOptions,
 
+    #[clap(short = 'h', long, help = "Print help (see more with '--help')")]
+    help: bool,
+
     #[clap(subcommand)]
-    command: Command,
+    command: Option<Command>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -60,13 +64,19 @@ pub fn main() {
         exit(EX_OK);
     }
 
+    // Print the help message, if requested:
+    if options.help {
+        Options::command().print_long_help().unwrap();
+        exit(EX_OK);
+    }
+
     // Configure debug output:
     if options.flags.debug {
         std::env::set_var("RUST_BACKTRACE", "1");
     }
 
     // Locate the given subcommand:
-    let Command::External(command) = &options.command;
+    let Command::External(command) = &options.command.unwrap();
     let Some(command_path) = find_external_subcommand(&command[0]) else {
         eprintln!(
             "{}: command not found: asimov-{}{}",
