@@ -10,6 +10,7 @@ use clientele::{
     SysexitsError::*,
 };
 use std::{
+    collections::BTreeSet,
     env::consts::EXE_SUFFIX,
     fs::Metadata,
     os::unix::{ffi::OsStrExt, process::ExitStatusExt},
@@ -69,20 +70,14 @@ pub fn main() {
     if options.help {
         let mut help = String::new();
         help.push_str(color_print::cstr!("<s><u>Commands:</u></s>\n"));
-        let subcommands = find_external_subcommands().unwrap_or_default();
-        for (i, subcommand_path) in subcommands.iter().enumerate() {
-            let Some(subcommand_name) = subcommand_path.file_name() else {
-                continue; // skip invalid file names
-            };
-            let Some(subcommand_name) = subcommand_name.to_str() else {
-                continue; // skip invalid UTF-8 in names
-            };
+        let subcommands = find_external_subcommands("asimov-").unwrap_or_default();
+        for (i, subcommand_name) in subcommands.iter().enumerate() {
             if i > 0 {
                 help.push('\n');
             }
             help.push_str(&color_print::cformat!(
                 "\t<dim>$</dim> <s>asimov {}{}</s> [OPTIONS] [COMMAND]",
-                subcommand_name.trim_start_matches("asimov-"),
+                subcommand_name,
                 EXE_SUFFIX
             ));
         }
@@ -100,10 +95,10 @@ pub fn main() {
 
     // Locate the given subcommand:
     let Command::External(command) = &options.command.unwrap();
-    let Some(command_path) = find_external_subcommand(&command[0]) else {
+    let Some(command_path) = find_external_subcommand("asimov-", &command[0]) else {
         eprintln!(
-            "{}: command not found: asimov-{}{}",
-            "asimov", command[0], EXE_SUFFIX
+            "{}: command not found: {}{}{}",
+            "asimov", "asimov-", command[0], EXE_SUFFIX
         );
         exit(EX_UNAVAILABLE);
     };
@@ -137,7 +132,21 @@ pub fn main() {
     }
 }
 
-fn find_external_subcommands() -> std::io::Result<Vec<PathBuf>> {
+fn find_external_subcommands(prefix: &str) -> std::io::Result<BTreeSet<String>> {
+    Ok(find_external_commands(prefix)?
+        .iter()
+        .filter_map(|path| {
+            path.file_name().map(|name| {
+                name.to_string_lossy()
+                    .trim_start_matches(prefix)
+                    .to_string()
+            })
+        })
+        .collect())
+}
+
+fn find_external_commands(prefix: &str) -> std::io::Result<Vec<PathBuf>> {
+    let prefix = prefix.as_bytes();
     let mut result = vec![];
     let Some(paths) = std::env::var_os("PATH") else {
         return Ok(result);
@@ -152,7 +161,7 @@ fn find_external_subcommands() -> std::io::Result<Vec<PathBuf>> {
             let entry_bytes = entry_name.as_bytes();
             if entry_bytes.starts_with(b".")
                 || entry_bytes.ends_with(b"~")
-                || !entry_bytes.starts_with(b"asimov-")
+                || !entry_bytes.starts_with(prefix)
                 || !is_executable_metadata(entry.metadata()?)
             {
                 continue; // skip hidden, backup, and non-executable files
@@ -163,8 +172,12 @@ fn find_external_subcommands() -> std::io::Result<Vec<PathBuf>> {
     Ok(result)
 }
 
-fn find_external_subcommand(subcommand: &str) -> Option<PathBuf> {
-    let command_exe = format!("asimov-{}{}", subcommand, EXE_SUFFIX);
+fn find_external_subcommand(prefix: &str, subcommand: &str) -> Option<PathBuf> {
+    find_external_command(&format!("{}{}", prefix, subcommand))
+}
+
+fn find_external_command(command: &str) -> Option<PathBuf> {
+    let command_exe = format!("{}{}", command, EXE_SUFFIX);
     std::env::var_os("PATH").and_then(|paths| {
         std::env::split_paths(&paths)
             .map(|path| path.join(&command_exe))
