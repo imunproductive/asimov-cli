@@ -20,7 +20,7 @@ use std::{
 
 /// ASIMOV Command-Line Interface (CLI)
 #[derive(Debug, Parser)]
-#[command(name = "ASIMOV", long_about)]
+#[command(name = "asimov", long_about)]
 #[command(allow_external_subcommands = true)]
 #[command(arg_required_else_help = true)]
 #[command(disable_help_flag = true)]
