@@ -11,7 +11,8 @@ use clientele::{
 };
 use std::{
     env::consts::EXE_SUFFIX,
-    os::unix::process::ExitStatusExt,
+    fs::Metadata,
+    os::unix::{ffi::OsStrExt, process::ExitStatusExt},
     path::{Path, PathBuf},
     process::Stdio,
 };
@@ -66,7 +67,29 @@ pub fn main() {
 
     // Print the help message, if requested:
     if options.help {
-        Options::command().print_long_help().unwrap();
+        let mut help = String::new();
+        help.push_str(color_print::cstr!("<s><u>Commands:</u></s>\n"));
+        let subcommands = find_external_subcommands().unwrap_or_default();
+        for (i, subcommand_path) in subcommands.iter().enumerate() {
+            let Some(subcommand_name) = subcommand_path.file_name() else {
+                continue; // skip invalid file names
+            };
+            let Some(subcommand_name) = subcommand_name.to_str() else {
+                continue; // skip invalid UTF-8 in names
+            };
+            if i > 0 {
+                help.push('\n');
+            }
+            help.push_str(&color_print::cformat!(
+                "\t<dim>$</dim> <s>asimov {}{}</s> [OPTIONS] [COMMAND]",
+                subcommand_name.trim_start_matches("asimov-"),
+                EXE_SUFFIX
+            ));
+        }
+        Options::command()
+            .after_long_help(help)
+            .print_long_help()
+            .unwrap();
         exit(EX_OK);
     }
 
@@ -103,37 +126,66 @@ pub fn main() {
         Ok(status) => {
             use std::process::exit;
             #[cfg(unix)]
-            {
-                if let Some(signal) = status.signal() {
-                    if options.flags.debug {
-                        eprintln!("{}: terminated by signal {}", "asimov", signal);
-                    }
-                    exit((signal | 0x80) & 0xff);
+            if let Some(signal) = status.signal() {
+                if options.flags.debug {
+                    eprintln!("{}: terminated by signal {}", "asimov", signal);
                 }
+                exit((signal | 0x80) & 0xff);
             }
             exit(status.code().unwrap_or(EX_SOFTWARE.as_i32()))
         }
     }
 }
 
-fn find_external_subcommand(command: &str) -> Option<PathBuf> {
-    let command_exe = format!("asimov-{}{}", command, EXE_SUFFIX);
+fn find_external_subcommands() -> std::io::Result<Vec<PathBuf>> {
+    let mut result = vec![];
+    let Some(paths) = std::env::var_os("PATH") else {
+        return Ok(result);
+    };
+    for path in std::env::split_paths(&paths) {
+        let Ok(dir) = std::fs::read_dir(path) else {
+            continue;
+        };
+        for entry in dir {
+            let entry = entry?;
+            let entry_name = entry.file_name();
+            let entry_bytes = entry_name.as_bytes();
+            if entry_bytes.starts_with(b".")
+                || entry_bytes.ends_with(b"~")
+                || !entry_bytes.starts_with(b"asimov-")
+                || !is_executable_metadata(entry.metadata()?)
+            {
+                continue; // skip hidden, backup, and non-executable files
+            }
+            result.push(entry.path());
+        }
+    }
+    Ok(result)
+}
+
+fn find_external_subcommand(subcommand: &str) -> Option<PathBuf> {
+    let command_exe = format!("asimov-{}{}", subcommand, EXE_SUFFIX);
     std::env::var_os("PATH").and_then(|paths| {
         std::env::split_paths(&paths)
             .map(|path| path.join(&command_exe))
-            .find(|path| is_executable(path))
+            .find(|path| is_executable_path(path))
     })
 }
 
+#[cfg(windows)]
+fn is_executable_path(path: impl AsRef<Path>) -> bool {
+    path.as_ref().is_file()
+}
+
 #[cfg(unix)]
-fn is_executable(path: impl AsRef<Path>) -> bool {
-    use std::os::unix::prelude::*;
+fn is_executable_path(path: impl AsRef<Path>) -> bool {
     std::fs::metadata(path)
-        .map(|metadata| metadata.is_file() && metadata.permissions().mode() & 0o111 != 0)
+        .map(is_executable_metadata)
         .unwrap_or(false)
 }
 
-#[cfg(windows)]
-fn is_executable(path: impl AsRef<Path>) -> bool {
-    path.as_ref().is_file()
+#[cfg(unix)]
+fn is_executable_metadata(metadata: Metadata) -> bool {
+    use std::os::unix::prelude::*;
+    metadata.is_file() && metadata.permissions().mode() & 0o111 != 0
 }
