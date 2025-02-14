@@ -2,47 +2,128 @@
 
 #![deny(unsafe_code)]
 
-mod exit;
 mod feature;
 
-use crate::exit::ExitCode;
-use clientele::{crates::clap::Parser, StandardOptions};
+use clientele::{
+    crates::clap::{Parser, Subcommand},
+    exit, StandardOptions,
+    SysexitsError::*,
+};
+use std::{
+    env::consts::EXE_SUFFIX,
+    os::unix::process::ExitStatusExt,
+    path::{Path, PathBuf},
+    process::Stdio,
+};
 
 /// ASIMOV Command-Line Interface (CLI)
 #[derive(Debug, Parser)]
-#[command(name = "ASIMOV", about)]
+#[command(name = "ASIMOV", long_about)]
+#[command(subcommand_required = true)]
 #[command(arg_required_else_help = true)]
+#[command(allow_external_subcommands = true)]
 struct Options {
     #[clap(flatten)]
     flags: StandardOptions,
 
-    command: String,
+    #[clap(subcommand)]
+    command: Command,
 }
 
-pub fn main() -> Result<(), ExitCode> {
+#[derive(Debug, Subcommand)]
+enum Command {
+    #[clap(external_subcommand)]
+    External(Vec<String>),
+}
+
+pub fn main() {
     // Load environment variables from `.env`:
     clientele::dotenv().ok();
 
     // Expand wildcards and @argfiles:
-    let args = clientele::args_os()?;
+    let Ok(args) = clientele::args_os() else {
+        exit(EX_USAGE);
+    };
 
     // Parse command-line options:
-    let options = Options::parse_from(args);
+    let options = Options::parse_from(&args);
 
+    // Print the version, if requested:
     if options.flags.version {
         println!("ASIMOV {}", env!("CARGO_PKG_VERSION"));
-        return Ok(());
+        exit(EX_OK);
     }
 
+    // Print the license, if requested:
     if options.flags.license {
         print!("{}", include_str!("../UNLICENSE"));
-        return Ok(());
+        exit(EX_OK);
     }
 
-    // Configure verbose/debug output:
-    if options.flags.verbose > 0 || options.flags.debug {
-        // TODO: configure tracing
+    // Configure debug output:
+    if options.flags.debug {
+        std::env::set_var("RUST_BACKTRACE", "1");
     }
 
-    Ok(()) // TODO
+    // Locate the given subcommand:
+    let Command::External(command) = &options.command;
+    let Some(command_path) = find_external_subcommand(&command[0]) else {
+        eprintln!(
+            "{}: command not found: asimov-{}{}",
+            "asimov", command[0], EXE_SUFFIX
+        );
+        exit(EX_UNAVAILABLE);
+    };
+
+    // Execute the given subcommand:
+    let status = std::process::Command::new(command_path)
+        .args(&command[1..])
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .status();
+
+    match status {
+        Err(error) => {
+            if options.flags.debug {
+                eprintln!("{}: {}", "asimov", error);
+            }
+            exit(EX_SOFTWARE);
+        }
+        Ok(status) => {
+            use std::process::exit;
+            #[cfg(unix)]
+            {
+                if let Some(signal) = status.signal() {
+                    if options.flags.debug {
+                        eprintln!("{}: terminated by signal {}", "asimov", signal);
+                    }
+                    exit((signal | 0x80) & 0xff);
+                }
+            }
+            exit(status.code().unwrap_or(EX_SOFTWARE.as_i32()))
+        }
+    }
+}
+
+fn find_external_subcommand(command: &str) -> Option<PathBuf> {
+    let command_exe = format!("asimov-{}{}", command, EXE_SUFFIX);
+    std::env::var_os("PATH").and_then(|paths| {
+        std::env::split_paths(&paths)
+            .map(|path| path.join(&command_exe))
+            .find(|path| is_executable(path))
+    })
+}
+
+#[cfg(unix)]
+fn is_executable(path: impl AsRef<Path>) -> bool {
+    use std::os::unix::prelude::*;
+    std::fs::metadata(path)
+        .map(|metadata| metadata.is_file() && metadata.permissions().mode() & 0o111 != 0)
+        .unwrap_or(false)
+}
+
+#[cfg(windows)]
+fn is_executable(path: impl AsRef<Path>) -> bool {
+    path.as_ref().is_file()
 }
