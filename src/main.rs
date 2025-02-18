@@ -123,7 +123,7 @@ pub fn main() {
 
             #[cfg(unix)]
             {
-                use std::process::ExitStatusExt;
+                use std::os::unix::process::ExitStatusExt;
 
                 if let Some(signal) = status.signal() {
                     if options.flags.debug {
