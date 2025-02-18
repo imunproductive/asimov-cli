@@ -120,13 +120,19 @@ pub fn main() {
         }
         Ok(status) => {
             use std::process::exit;
+
             #[cfg(unix)]
-            if let Some(signal) = status.signal() {
-                if options.flags.debug {
-                    eprintln!("{}: terminated by signal {}", "asimov", signal);
+            {
+                use std::process::ExitStatusExt;
+
+                if let Some(signal) = status.signal() {
+                    if options.flags.debug {
+                        eprintln!("{}: terminated by signal {}", "asimov", signal);
+                    }
+                    exit((signal | 0x80) & 0xff);
                 }
-                exit((signal | 0x80) & 0xff);
             }
+
             exit(status.code().unwrap_or(EX_SOFTWARE.as_i32()))
         }
     }
@@ -180,7 +186,7 @@ fn find_external_commands(prefix: &str) -> std::io::Result<Vec<PathBuf>> {
 
         #[cfg(unix)]
         {
-            use std::os::unix::{ffi::OsStrExt, process::ExitStatusExt};
+            use std::os::unix::ffi::OsStrExt;
 
             for entry in dir {
                 let entry = entry?;
