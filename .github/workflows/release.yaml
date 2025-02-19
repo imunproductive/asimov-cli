@@ -43,6 +43,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
           artifact-name: ${{ matrix.artifact }}
+          binary-name: asimov
           binary-extension: ${{ matrix.extension }}
           strip-artifact: ${{ matrix.strip || 'false' }}
           use-zigbuild: ${{ matrix.use-zigbuild || 'false' }}
