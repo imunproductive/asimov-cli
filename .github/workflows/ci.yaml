@@ -8,7 +8,7 @@ on:
 
 permissions:
   contents: read
-    
+
 jobs:
   check-formatting:
     name: Check formatting
@@ -163,7 +163,7 @@ jobs:
                   }
                 }
               }
-            
+
               await github.rest.pulls.createReview({
                 ...context.repo,
                 pull_number: context.issue.number,
