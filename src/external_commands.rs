@@ -4,11 +4,13 @@ use std::{fs::ReadDir, path::PathBuf};
 
 pub type Result<T> = std::io::Result<T>;
 
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ExternalCommand {
     pub name: String,
     pub path: PathBuf,
 }
 
+#[derive(Debug, Clone)]
 pub struct ExternalCommands {
     commands: Vec<ExternalCommand>,
 }
