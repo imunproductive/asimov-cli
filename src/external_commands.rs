@@ -31,11 +31,25 @@ impl ExternalCommands {
                 continue;
             };
 
-            let commands = Self::collect_in_dir(prefix, dir)?;
-            result.extend(commands.into_iter().filter(|cmd| {
-                let count = cmd.name.chars().filter(|&c| c == '-').count();
-                count < level
-            }));
+            let commands = Self::collect_in_dir(prefix, dir)?
+                .into_iter()
+                // Construct ExternalCommand.
+                .flat_map(|path| {
+                    let name = path
+                        .file_stem()?
+                        .to_string_lossy()
+                        .trim_start_matches(prefix)
+                        .to_string();
+
+                    Some(ExternalCommand { name, path })
+                })
+                // Respect level.
+                .filter(|cmd| {
+                    let count = cmd.name.chars().filter(|&c| c == '-').count();
+                    count < level
+                });
+
+            result.extend(commands);
         }
 
         Ok(result)
@@ -93,7 +107,7 @@ impl ExternalCommands {
 
 #[cfg(windows)]
 impl ExternalCommands {
-    fn collect_in_dir(prefix: &str, dir: ReadDir) -> Result<Vec<ExternalCommand>> {
+    fn collect_in_dir(prefix: &str, dir: ReadDir) -> Result<Vec<PathBuf>> {
         use std::env::consts::EXE_EXTENSION;
         use std::os::windows::fs::MetadataExt;
         use std::path::PathBuf;
@@ -145,19 +159,7 @@ impl ExternalCommands {
                 continue;
             }
 
-            let name_path = PathBuf::from(entry_name);
-            let Some(name) = name_path.file_stem().map(|name| {
-                name.to_string_lossy()
-                    .trim_start_matches(prefix)
-                    .to_string()
-            }) else {
-                continue;
-            };
-
-            result.push(ExternalCommand {
-                name,
-                path: entry_path,
-            });
+            result.push(entry_path)
         }
 
         Ok(result)
