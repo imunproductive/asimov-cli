@@ -54,8 +54,19 @@ pub fn init() -> Result<TempDir> {
 
     #[cfg(unix)]
     for file in TEST_FILES {
+        use std::fs::OpenOptions;
+        use std::io::Write;
+        use std::os::unix::fs::OpenOptionsExt;
+
         let content = format!("#!/bin/sh\n{}", file.content);
-        std::fs::write(dir.child(file.name), content)?;
+        let path = dir.child(file.name);
+        let mut file = OpenOptions::new()
+            .write(true)
+            .mode(0o755)
+            .truncate(true)
+            .create(true)
+            .open(&path)?;
+        file.write_all(content.as_bytes())?;
     }
 
     #[cfg(windows)]
