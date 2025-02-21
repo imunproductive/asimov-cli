@@ -5,9 +5,10 @@ pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 struct TestFile {
     name: &'static str,
-    win_ext: &'static str,
     content: &'static str,
     should_be_listed: bool,
+    #[allow(dead_code)]
+    win_ext: &'static str,
 }
 
 impl TestFile {
@@ -22,28 +23,28 @@ impl TestFile {
 static TEST_FILES: &[TestFile] = &[
     TestFile {
         name: "asimov-hello",
-        win_ext: "bat",
         content: "Hello, world!",
         should_be_listed: true,
+        win_ext: "bat",
     },
     TestFile {
         name: "asimov-two-levels",
-        win_ext: "bat",
         content: "Should be filtered out!",
         should_be_listed: false,
+        win_ext: "bat",
     },
     TestFile {
         name: "abcdefg-test",
-        win_ext: "bat",
         content: "Shouldn't appear!",
         should_be_listed: false,
+        win_ext: "bat",
     },
     #[cfg(windows)]
     TestFile {
         name: "asimov-hola",
-        win_ext: "cmd",
         content: "Hola mundo!",
         should_be_listed: true,
+        win_ext: "cmd",
     },
 ];
 
