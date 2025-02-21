@@ -70,40 +70,53 @@ impl ExternalCommands {
 
 #[cfg(unix)]
 impl ExternalCommands {
-    // use std::fs::Metadata;
-
-    fn is_executable_path(path: impl AsRef<Path>) -> bool {
-        std::fs::metadata(path)
-            .map(is_executable_metadata)
-            .unwrap_or(false)
-    }
-
-    fn is_executable_metadata(metadata: Metadata) -> bool {
+    fn is_executable_metadata(metadata: std::fs::Metadata) -> bool {
         use std::os::unix::prelude::*;
         metadata.is_file() && metadata.permissions().mode() & 0o111 != 0
     }
 
-    fn collect_in_dir(prefix: &[u8], dir: ReadDir) -> Result<Vec<ExternalCommand>> {
-        use std::os::unix::ffi::OsStrExt;
+    fn collect_in_dir(prefix: &str, dir: ReadDir) -> Result<Vec<PathBuf>> {
+        let mut result = vec![];
 
         for entry in dir {
-            let entry = entry?;
-            let entry_name = entry.file_name();
-            let entry_bytes = entry_name.as_bytes();
-            if entry_bytes.starts_with(b".")
-                || entry_bytes.ends_with(b"~")
-                || !entry_bytes.starts_with(prefix)
-                || !is_executable_metadata(entry.metadata()?)
+            let Ok(entry) = entry else {
+                // invalid entry.
+                continue;
+            };
+
+            let file_name = entry.file_name();
+            let Some(entry_name) = file_name.to_str() else {
+                // skip files with invalid names.
+                continue;
+            };
+
+            if !entry_name.starts_with(prefix) {
+                // skip non-matching files.
+                continue;
+            }
+
+            if entry_name.starts_with(".")
+                || entry_name.ends_with("~")
+                || !entry_name.starts_with(prefix)
             {
-                continue; // skip hidden, backup, and non-executable files
+                // skip hidden and backup files.
+                continue;
             }
-            let count = entry_bytes
-                .iter()
-                .fold(0, |sum, &b| sum + (b == b'-') as usize);
-            if count <= level {
-                result.push(entry.path());
+
+            let Ok(metadata) = entry.metadata() else {
+                // couldn't get metadata.
+                continue;
+            };
+
+            if !Self::is_executable_metadata(metadata) {
+                // skip non-executable files.
+                continue;
             }
+
+            result.push(entry.path());
         }
+
+        Ok(result)
     }
 }
 
@@ -161,7 +174,7 @@ impl ExternalCommands {
                 continue;
             }
 
-            result.push(entry_path)
+            result.push(entry_path);
         }
 
         Ok(result)
