@@ -9,7 +9,7 @@ use clientele::{
     exit, StandardOptions,
     SysexitsError::*,
 };
-use std::{env::consts::EXE_SUFFIX, process::Stdio};
+use std::process::Stdio;
 
 /// ASIMOV Command-Line Interface (CLI)
 #[derive(Debug, Parser)]
@@ -99,8 +99,8 @@ pub fn main() {
     let Command::External(command) = &options.command.unwrap();
     let Some(cmd_to_execute) = commands.find(&command[0]) else {
         eprintln!(
-            "{}: command not found: {}{}{}",
-            "asimov", "asimov-", command[0], EXE_SUFFIX
+            "{}: command not found: {}{}",
+            "asimov", "asimov-", command[0]
         );
         exit(EX_UNAVAILABLE);
     };
