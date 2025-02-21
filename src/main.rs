@@ -64,7 +64,7 @@ pub fn main() {
         std::env::set_var("RUST_BACKTRACE", "1");
     }
 
-    let commands = match asimov_cli::ExternalCommands::collect("asimov-", /*1*/ 99) {
+    let commands = match asimov_cli::ExternalCommands::collect("asimov-", 1) {
         Ok(commands) => commands,
         Err(error) => {
             eprintln!(
