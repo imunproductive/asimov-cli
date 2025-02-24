@@ -90,16 +90,13 @@ impl ExternalCommands {
                 continue;
             };
 
-            if !entry_name.starts_with(prefix) {
-                // skip non-matching files.
+            if entry_name.starts_with(".") || entry_name.ends_with("~") {
+                // skip hidden and backup files.
                 continue;
             }
 
-            if entry_name.starts_with(".")
-                || entry_name.ends_with("~")
-                || !entry_name.starts_with(prefix)
-            {
-                // skip hidden and backup files.
+            if !entry_name.starts_with(prefix) {
+                // skip non-matching files.
                 continue;
             }
 
