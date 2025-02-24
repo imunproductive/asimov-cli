@@ -122,7 +122,6 @@ impl ExternalCommands {
     fn collect_in_dir(prefix: &str, dir: ReadDir) -> Result<Vec<PathBuf>> {
         use std::env::consts::EXE_EXTENSION;
         use std::os::windows::fs::MetadataExt;
-        use std::path::PathBuf;
 
         const FILE_ATTRIBUTE_HIDDEN: u32 = 0x00000002;
 
