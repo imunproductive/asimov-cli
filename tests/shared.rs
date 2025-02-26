@@ -1,3 +1,5 @@
+// This is free and unencumbered software released into the public domain.
+
 use temp_dir::TempDir;
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
