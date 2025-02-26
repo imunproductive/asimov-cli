@@ -2,8 +2,6 @@
 
 use std::path::{Path, PathBuf};
 
-pub type Result<T> = std::io::Result<T>;
-
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ExternalCommand {
     pub name: String,
@@ -16,14 +14,14 @@ pub struct ExternalCommands {
 }
 
 impl ExternalCommands {
-    pub fn collect(prefix: &str, level: usize) -> Result<ExternalCommands> {
-        let commands = Self::collect_internal(prefix, level)?;
+    pub fn collect(prefix: &str, level: usize) -> ExternalCommands {
+        let commands = Self::collect_internal(prefix, level);
 
-        Ok(ExternalCommands { commands })
+        ExternalCommands { commands }
     }
 
-    fn collect_internal(prefix: &str, level: usize) -> Result<Vec<ExternalCommand>> {
-        let result = Self::collect_commands(prefix)?
+    fn collect_internal(prefix: &str, level: usize) -> Vec<ExternalCommand> {
+        let result = Self::collect_commands(prefix)
             .into_iter()
             // Construct ExternalCommand.
             .flat_map(|path| {
@@ -42,7 +40,7 @@ impl ExternalCommands {
             })
             .collect();
 
-        Ok(result)
+        result
     }
 
     pub fn find(prefix: &str, name: &str) -> Option<ExternalCommand> {
@@ -92,10 +90,10 @@ impl ExternalCommands {
         true
     }
 
-    fn collect_commands(prefix: &str) -> Result<Vec<PathBuf>> {
+    fn collect_commands(prefix: &str) -> Vec<PathBuf> {
         let Some(paths) = std::env::var_os("PATH") else {
             // PATH variable is not set.
-            return Ok(vec![]);
+            return vec![];
         };
 
         let mut result = vec![];
@@ -117,7 +115,7 @@ impl ExternalCommands {
             }
         }
 
-        Ok(result)
+        result
     }
 
     fn resolve_command(prefix: &str, command: &str) -> Option<PathBuf> {
@@ -146,18 +144,19 @@ impl ExternalCommands {
 
 #[cfg(windows)]
 impl ExternalCommands {
-    fn get_path_exts() -> Result<Vec<String>> {
+    fn get_path_exts() -> Option<Vec<String>> {
         let Ok(exts) = std::env::var("PATHEXT") else {
             // PATHEXT variable is not set.
-            return Ok(vec![]);
+            return None;
         };
 
         // NOTE: I am not sure if std::env::split_paths should be applied here,
         // since it also deals with '"' which seems to not be used in PATHEXT?
-        return Ok(exts
-            .split(';')
-            .map(|ext| ext[1..].to_lowercase())
-            .collect::<Vec<_>>());
+        return Some(
+            exts.split(';')
+                .map(|ext| ext[1..].to_lowercase())
+                .collect::<Vec<_>>(),
+        );
     }
 
     fn filter_file(prefix: &str, path: &Path, exts: Option<&[String]>) -> bool {
@@ -202,15 +201,15 @@ impl ExternalCommands {
         true
     }
 
-    fn collect_commands(prefix: &str) -> Result<Vec<PathBuf>> {
+    fn collect_commands(prefix: &str) -> Vec<PathBuf> {
         let Some(paths) = std::env::var_os("PATH") else {
             // PATH variable is not set.
-            return Ok(vec![]);
+            return vec![];
         };
 
-        let Ok(exts) = Self::get_path_exts() else {
+        let Some(exts) = Self::get_path_exts() else {
             // PATHEXT variable is not set or invalid.
-            return Ok(vec![]);
+            return vec![];
         };
 
         let mut result = vec![];
@@ -232,7 +231,7 @@ impl ExternalCommands {
             }
         }
 
-        Ok(result)
+        result
     }
 
     fn resolve_command(prefix: &str, command: &str) -> Option<PathBuf> {
@@ -241,7 +240,7 @@ impl ExternalCommands {
             return None;
         };
 
-        let Ok(exts) = Self::get_path_exts() else {
+        let Some(exts) = Self::get_path_exts() else {
             // PATHEXT variable is not set or invalid.
             return None;
         };

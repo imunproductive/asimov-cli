@@ -8,7 +8,7 @@ use shared::{Result, TEST_FILES};
 #[test]
 pub fn test_list() -> Result<()> {
     let dir = shared::init()?;
-    let cmds = ExternalCommands::collect("asimov-", 1)?;
+    let cmds = ExternalCommands::collect("asimov-", 1);
 
     for file in TEST_FILES {
         println!("{}: ", file.name);

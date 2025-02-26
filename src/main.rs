@@ -71,17 +71,7 @@ pub fn main() {
         let mut help = String::new();
         help.push_str(color_print::cstr!("<s><u>Commands:</u></s>\n"));
 
-        let commands = match ExternalCommands::collect("asimov-", 1) {
-            Ok(commands) => commands,
-            Err(error) => {
-                eprintln!(
-                    "{}: failed to collect external commands: {}",
-                    "asimov", error
-                );
-                return;
-            }
-        };
-
+        let commands = ExternalCommands::collect("asimov-", 1);
         for (i, cmd) in commands.iter().enumerate() {
             if i > 0 {
                 help.push('\n');
