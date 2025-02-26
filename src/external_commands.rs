@@ -18,6 +18,7 @@ pub struct ExternalCommands {
 impl ExternalCommands {
     pub fn collect(prefix: &str, level: usize) -> Result<ExternalCommands> {
         let commands = Self::collect_internal(prefix, level)?;
+
         Ok(ExternalCommands { commands })
     }
 
@@ -43,15 +44,17 @@ impl ExternalCommands {
 
         Ok(result)
     }
+
+    pub fn find(prefix: &str, name: &str) -> Option<ExternalCommand> {
+        let name = format!("{}{}", prefix, name);
+        let path = Self::resolve_command(prefix, &name);
+        path.map(|path| ExternalCommand { name, path })
+    }
 }
 
 impl ExternalCommands {
     pub fn iter(&self) -> impl Iterator<Item = &ExternalCommand> {
         self.commands.iter()
-    }
-
-    pub fn find(&self, name: &str) -> Option<&ExternalCommand> {
-        self.commands.iter().find(|command| command.name == name)
     }
 }
 

@@ -11,6 +11,8 @@ use clientele::{
 };
 use std::process::Stdio;
 
+use asimov_cli::ExternalCommands;
+
 /// ASIMOV Command-Line Interface (CLI)
 #[derive(Debug, Parser)]
 #[command(name = "asimov", long_about)]
@@ -64,21 +66,22 @@ pub fn main() {
         std::env::set_var("RUST_BACKTRACE", "1");
     }
 
-    let commands = match asimov_cli::ExternalCommands::collect("asimov-", 1) {
-        Ok(commands) => commands,
-        Err(error) => {
-            eprintln!(
-                "{}: failed to collect external commands: {}",
-                "asimov", error
-            );
-            return;
-        }
-    };
-
     // Print the help message, if requested:
     if options.help {
         let mut help = String::new();
         help.push_str(color_print::cstr!("<s><u>Commands:</u></s>\n"));
+
+        let commands = match ExternalCommands::collect("asimov-", 1) {
+            Ok(commands) => commands,
+            Err(error) => {
+                eprintln!(
+                    "{}: failed to collect external commands: {}",
+                    "asimov", error
+                );
+                return;
+            }
+        };
+
         for (i, cmd) in commands.iter().enumerate() {
             if i > 0 {
                 help.push('\n');
@@ -88,16 +91,18 @@ pub fn main() {
                 cmd.name,
             ));
         }
+
         Options::command()
             .after_long_help(help)
             .print_long_help()
             .unwrap();
+
         exit(EX_OK);
     }
 
     // Locate the given subcommand:
     let Command::External(command) = &options.command.unwrap();
-    let Some(cmd_to_execute) = commands.find(&command[0]) else {
+    let Some(cmd_to_execute) = ExternalCommands::find("asimov-", &command[0]) else {
         eprintln!(
             "{}: command not found: {}{}",
             "asimov", "asimov-", command[0]
