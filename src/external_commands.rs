@@ -15,13 +15,7 @@ pub struct ExternalCommands {
 
 impl ExternalCommands {
     pub fn collect(prefix: &str, level: usize) -> ExternalCommands {
-        let commands = Self::collect_internal(prefix, level);
-
-        ExternalCommands { commands }
-    }
-
-    fn collect_internal(prefix: &str, level: usize) -> Vec<ExternalCommand> {
-        let result = Self::collect_commands(prefix)
+        let commands = Self::collect_commands(prefix)
             .into_iter()
             // Construct ExternalCommand.
             .flat_map(|path| {
@@ -40,7 +34,7 @@ impl ExternalCommands {
             })
             .collect();
 
-        result
+        ExternalCommands { commands }
     }
 
     pub fn find(prefix: &str, name: &str) -> Option<ExternalCommand> {
