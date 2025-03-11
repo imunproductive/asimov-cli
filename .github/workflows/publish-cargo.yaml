@@ -13,14 +13,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Add staging registry
-        run: |
-          echo '[registries]
-          staging = { index = "https://github.com/rust-lang/staging.crates.io-index" }' > ~/.cargo/config.toml
       - name: Login to crates.io
-        run: cargo login --registry=staging ${{ secrets.CARGO_API_TOKEN }}
+        run: cargo login ${{ secrets.CARGO_API_TOKEN }}
       - name: Publish
         # We pass --no-verify here because this job runs when release
         # is already created, meaning all the checks are passed and
         # it was successfully for linux, macos and windows.
-        run: cargo publish --registry=staging --no-verify
+        run: cargo publish --no-verify
