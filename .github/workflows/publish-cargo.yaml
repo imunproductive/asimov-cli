@@ -18,5 +18,5 @@ jobs:
       - name: Publish
         # We pass --no-verify here because this job runs when release
         # is already created, meaning all the checks are passed and
-        # it was successfully for linux, macos and windows.
+        # it was successfully built for linux, macos and windows.
         run: cargo publish --no-verify
