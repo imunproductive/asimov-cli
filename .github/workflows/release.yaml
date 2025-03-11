@@ -59,6 +59,7 @@ jobs:
       contents: write
     steps:
       - name: Download artifacts
-        uses: asimov-platform/release-action@v1
+        uses: asimov-platform/release-action@v2
         with:
+          token: ${{ secrets.PAT_RELEASE }}
           changelog-path: CHANGES.md
