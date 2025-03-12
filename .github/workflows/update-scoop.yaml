@@ -1,0 +1,26 @@
+# See: https://docs.github.com/en/actions/writing-workflows
+---
+name: Update scoop bucket
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update:
+    name: Update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install hub
+        run: brew install hub
+      - name: Install scoop
+        shell: pwsh
+        run: iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
+      - name: Checkout scoop bucket
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT_SCOOP_BUCKET }}
+          repository: imunproductive/asimov-scoop-bucket
+      - name: Update
+        shell: pwsh
+        run: ./bin/auto-pr.ps1 -push
