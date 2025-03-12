@@ -3,6 +3,7 @@
 name: Update scoop bucket
 
 on:
+  workflow_dispatch:
   release:
     types: [published]
 
@@ -13,7 +14,9 @@ jobs:
     steps:
       - name: Install scoop
         shell: pwsh
-        run: irm get.scoop.sh | iex
+        run: |
+          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+          irm get.scoop.sh | iex
       - name: Install hub
         run: scoop install hub
       - name: Checkout scoop bucket
