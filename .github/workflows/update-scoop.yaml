@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Install scoop
         shell: pwsh
-        run: iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
+        run: irm get.scoop.sh | iex
       - name: Install hub
         run: scoop install hub
       - name: Checkout scoop bucket
