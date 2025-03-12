@@ -20,6 +20,10 @@ jobs:
           Join-Path (Resolve-Path ~).Path "scoop\shims" >> $Env:GITHUB_PATH
       - name: Install hub
         run: scoop install hub
+      - name: Setup git credentials
+        run: |
+          git config --global user.name github-actions[bot]
+          git config --global user.email 41898282+github-actions[bot]@users.noreply.github.com
       - name: Checkout scoop bucket
         uses: actions/checkout@v3
         with:
