@@ -28,3 +28,5 @@ jobs:
       - name: Update
         shell: pwsh
         run: ./bin/auto-pr.ps1 -push
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_SCOOP_BUCKET }}
