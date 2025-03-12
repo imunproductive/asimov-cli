@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install hub
-        run: brew install hub
+        run: sudo apt-get update && sudo apt-get install -y hub
       - name: Install scoop
         shell: pwsh
         run: iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
