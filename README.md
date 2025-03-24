@@ -28,8 +28,8 @@ cargo install asimov-cli --version 25.0.0-dev.3
 
 #### [Scoop](https://scoop.sh)
 
-First things first, you need to add our custom scoop bucket.
-This needs to be done only once, so that scoop knows where to find our packages.
+First things first, you need to add our custom Scoop bucket.
+This needs to be done only once, so that Scoop knows where to find our packages.
 
 ```bash
 scoop bucket add asimov-platform https://github.com/asimov-platform/scoop-bucket
