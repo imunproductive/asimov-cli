@@ -26,10 +26,23 @@ cargo install asimov-cli --version 25.0.0-dev.3
 
 ### Installation using Package Manager
 
+#### [Homebrew](https://brew.sh)
+
+Firstly, register this tap in your local Homebrew installation with:
+
+```bash
+brew tap asimov-platform/tap
+```
+
+Now you can install ASIMOV CLI with:
+
+```bash
+brew install asimov-cli
+```
+
 #### [Scoop](https://scoop.sh)
 
-First things first, you need to add our custom Scoop bucket.
-This needs to be done only once, so that Scoop knows where to find our packages.
+First things first, you need to add our custom Scoop bucket:
 
 ```bash
 scoop bucket add asimov-platform https://github.com/asimov-platform/scoop-bucket
@@ -39,6 +52,52 @@ Now, installing ASIMOV CLI is as easy as running:
 
 ```bash
 scoop install asimov-platform/asimov-cli
+```
+
+#### [Nix flakes](https://nixos.wiki/wiki/Flakes)
+
+Nix flakes is an experimental feature that has to be enabled before going any further:
+
+```bash
+mkdir -p ~/.config/nix && echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
+```
+
+Now you can register the flake using:
+
+```bash
+nix registry add asimov-cli github:asimov-platform/nix-flake
+```
+
+And then install ASIMOV CLI with:
+
+```bash
+nix profile install asimov-cli#default --no-write-lock-file
+```
+
+#### [Flatpak](https://flatpak.org)
+
+First add the ASIMOV Platform Flatpak remote:
+
+```bash
+flatpak remote-add --if-not-exists --user asimov-cli --no-gpg-verify https://asimov-platform.github.io/flatpak
+```
+
+Then install ASIMOV CLI with:
+
+```bash
+flatpak install asimov-cli com.asimov_platform.asimov_cli
+```
+
+Now you can run it like this:
+
+```bash
+flatpak run com.asimov_platform.asimov_cli --help
+```
+
+You may want to create an alias for it:
+
+```bash
+alias asimov="flatpak run com.asimov_platform.asimov_cli"
 ```
 
 ## 👉 Examples
