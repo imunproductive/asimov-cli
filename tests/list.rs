@@ -1,19 +1,19 @@
 // This is free and unencumbered software released into the public domain.
 
-use asimov_cli::ExternalCommands;
+use asimov_cli::SubcommandsProvider;
 
 mod shared;
-use shared::{Result, TEST_FILES};
+use shared::{Result, TEST_FILES, TEST_PREFIX};
 
 #[test]
 pub fn test_list() -> Result<()> {
     let dir = shared::init()?;
-    let cmds = ExternalCommands::collect("asimov-", 1);
+    let cmds = SubcommandsProvider::collect(TEST_PREFIX, 1);
 
     for file in TEST_FILES {
         println!("{}: ", file.name);
 
-        let cd_name = file.name.trim_start_matches("asimov-");
+        let cd_name = file.name.trim_start_matches(TEST_PREFIX);
         let cmd = cmds.iter().find(|cmd| cmd.name == cd_name);
         let path = dir.child(file.full_name());
 
