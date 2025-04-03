@@ -85,19 +85,19 @@ flatpak remote-add --if-not-exists --user asimov-cli --no-gpg-verify https://asi
 Then install ASIMOV CLI with:
 
 ```bash
-flatpak install asimov-cli com.asimov_platform.asimov_cli
+flatpak install asimov-cli so.asimov.cli
 ```
 
 Now you can run it like this:
 
 ```bash
-flatpak run com.asimov_platform.asimov_cli --help
+flatpak run so.asimov.cli --help
 ```
 
 You may want to create an alias for it:
 
 ```bash
-alias asimov="flatpak run com.asimov_platform.asimov_cli"
+alias asimov="flatpak run so.asimov.cli"
 ```
 
 ## 👉 Examples
