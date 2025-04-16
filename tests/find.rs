@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use asimov_cli::SubcommandsProvider;
+use clientele::SubcommandsProvider;
 
 mod shared;
 use shared::{Result, TEST_FILES, TEST_PREFIX};

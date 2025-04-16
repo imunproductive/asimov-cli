@@ -6,14 +6,11 @@ mod feature;
 
 use clientele::{
     crates::clap::{CommandFactory, Parser, Subcommand as ClapSubcommand},
-    StandardOptions,
+    StandardOptions, SubcommandsProvider,
     SysexitsError::{self, *},
 };
 
-use asimov_cli::{
-    commands::{External, Help, HelpCmd},
-    SubcommandsProvider,
-};
+use asimov_cli::commands::{External, Help, HelpCmd};
 
 /// ASIMOV Command-Line Interface (CLI)
 #[derive(Debug, Parser)]
