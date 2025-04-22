@@ -3,9 +3,9 @@
 mod external;
 pub use external::*;
 
-#[cfg(feature = "unstable")]
+#[cfg(feature = "fetch")]
 mod fetch;
-#[cfg(feature = "unstable")]
+#[cfg(feature = "fetch")]
 pub use fetch::*;
 
 mod help;
@@ -14,7 +14,7 @@ pub use help::*;
 mod help_cmd;
 pub use help_cmd::*;
 
-#[cfg(feature = "unstable")]
+#[cfg(feature = "import")]
 mod import;
-#[cfg(feature = "unstable")]
+#[cfg(feature = "import")]
 pub use import::*;

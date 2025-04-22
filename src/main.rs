@@ -37,11 +37,11 @@ enum Command {
     },
 
     /// Fetch raw data from a URL, utilizing enabled modules
-    #[cfg(feature = "unstable")]
+    #[cfg(feature = "fetch")]
     Fetch { urls: Vec<String> },
 
     /// Import knowledge from a URL, utilizing enabled modules
-    #[cfg(feature = "unstable")]
+    #[cfg(feature = "import")]
     Import { urls: Vec<String> },
 
     #[clap(external_subcommand)]
@@ -115,9 +115,9 @@ pub fn main() -> SysexitsError {
                 cmd.execute()
             }
         }
-        #[cfg(feature = "unstable")]
+        #[cfg(feature = "fetch")]
         Command::Fetch { urls } => commands::fetch(urls, &options.flags).map(|_| EX_OK),
-        #[cfg(feature = "unstable")]
+        #[cfg(feature = "import")]
         Command::Import { urls } => commands::import(urls, &options.flags).map(|_| EX_OK),
         Command::External(args) => {
             let cmd = External {
