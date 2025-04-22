@@ -1,16 +1,14 @@
 // This is free and unencumbered software released into the public domain.
 
 #![deny(unsafe_code)]
+#![allow(unused)]
 
-mod feature;
-
+use asimov_cli::commands::{self, External, Help, HelpCmd};
 use clientele::{
     crates::clap::{CommandFactory, Parser, Subcommand as ClapSubcommand},
     StandardOptions, SubcommandsProvider,
     SysexitsError::{self, *},
 };
-
-use asimov_cli::commands::{External, Help, HelpCmd};
 
 /// ASIMOV Command-Line Interface (CLI)
 #[derive(Debug, Parser)]
@@ -32,11 +30,20 @@ struct Options {
 
 #[derive(Debug, ClapSubcommand)]
 enum Command {
-    // FIXME: `help` command is not listed in the help message.
+    /// Print help for a subcommand
     Help {
         #[clap(trailing_var_arg = true)]
         args: Vec<String>,
     },
+
+    /// Fetch raw data from a URL, utilizing enabled modules
+    #[cfg(feature = "unstable")]
+    Fetch { urls: Vec<String> },
+
+    /// Import knowledge from a URL, utilizing enabled modules
+    #[cfg(feature = "unstable")]
+    Import { urls: Vec<String> },
+
     #[clap(external_subcommand)]
     External(Vec<String>),
 }
@@ -108,6 +115,10 @@ pub fn main() -> SysexitsError {
                 cmd.execute()
             }
         }
+        #[cfg(feature = "unstable")]
+        Command::Fetch { urls } => commands::fetch(urls, &options.flags).map(|_| EX_OK),
+        #[cfg(feature = "unstable")]
+        Command::Import { urls } => commands::import(urls, &options.flags).map(|_| EX_OK),
         Command::External(args) => {
             let cmd = External {
                 is_debug: options.flags.debug,
