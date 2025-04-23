@@ -45,6 +45,9 @@ pub fn main() -> SysexitsError {
     // Load environment variables from `.env`:
     clientele::dotenv().ok();
 
+    // Add `libexec` directory to the PATH:
+    add_libexec_to_path();
+
     // Expand wildcards and @argfiles:
     let Ok(args) = clientele::args_os() else {
         return EX_USAGE;
@@ -123,6 +126,34 @@ pub fn main() -> SysexitsError {
     // in that case we would get an annoying `Error: ...` message,
     // which is not what we want. So we just return an error like this.
     result.unwrap_or_else(|e| e)
+}
+
+/// Adds `libexec` directory to the PATH.
+fn add_libexec_to_path() {
+    let Some(parent_dir) = std::env::current_exe()
+        .ok()
+        .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+    else {
+        return;
+    };
+
+    let libexec = parent_dir.with_file_name("libexec");
+    if !libexec.exists() {
+        return;
+    }
+
+    let Ok(path) = std::env::var("PATH") else {
+        return;
+    };
+
+    let mut path = std::env::split_paths(&path).collect::<Vec<_>>();
+    path.push(libexec);
+
+    let Ok(path) = std::env::join_paths(path) else {
+        return;
+    };
+
+    std::env::set_var("PATH", path);
 }
 
 /// Prints basic help message.
