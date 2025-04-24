@@ -114,8 +114,16 @@ pub fn main() -> SysexitsError {
 
                 result.map(|result| result.code)
             } else {
-                let cmd = Help;
-                cmd.execute()
+                let cmd = Help {
+                    is_debug: options.flags.debug,
+                };
+
+                let result = cmd.execute();
+                for cmd in result {
+                    println!("{}: {}", cmd.name, cmd.description);
+                }
+
+                Ok(EX_OK)
             }
         }
         #[cfg(feature = "fetch")]
