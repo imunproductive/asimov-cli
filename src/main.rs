@@ -114,15 +114,7 @@ pub fn main() -> SysexitsError {
 
                 result.map(|result| result.code)
             } else {
-                let cmd = Help {
-                    is_debug: options.flags.debug,
-                };
-
-                let result = cmd.execute();
-                for cmd in result {
-                    println!("{}: {}", cmd.name, cmd.description);
-                }
-
+                print_full_help();
                 Ok(EX_OK)
             }
         }
@@ -145,6 +137,50 @@ pub fn main() -> SysexitsError {
     // in that case we would get an annoying `Error: ...` message,
     // which is not what we want. So we just return an error like this.
     result.unwrap_or_else(|e| e)
+}
+
+/// Prints full help message.
+fn print_full_help() {
+    let mut help = String::new();
+    help.push_str(color_print::cstr!("<s><u>Commands:</u></s>\n"));
+
+    let cmds = Help.execute();
+    for (i, cmd) in cmds.iter().enumerate() {
+        if i > 0 {
+            help.push('\n');
+        }
+
+        let predicted_usage = format!("Usage: asimov-{} ", cmd.name);
+
+        if let Some(usage) = cmd
+            .usage
+            .as_ref()
+            .and_then(|usage| usage.strip_prefix(&predicted_usage))
+        {
+            // Usage string starts just as we expected. Skip it and print the arguments only.
+
+            help.push_str(&color_print::cformat!(
+                "\t<dim>$</dim> <s>asimov {}</s> {} - {}",
+                cmd.name,
+                usage,
+                cmd.description,
+            ));
+        } else {
+            // Either usage unavailable or it doesn't start with the expected string,
+            // fallback to the default message.
+
+            help.push_str(&color_print::cformat!(
+                "\t<dim>$</dim> <s>asimov {}</s> [OPTIONS] [COMMAND] - {}",
+                cmd.name,
+                cmd.description
+            ));
+        }
+    }
+
+    Options::command()
+        .after_long_help(help)
+        .print_long_help()
+        .unwrap();
 }
 
 /// Prints basic help message.

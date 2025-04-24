@@ -14,9 +14,7 @@ pub struct CommandDescription {
 }
 
 /// Prints extensive help message, executing `help` command for each subcommand.
-pub struct Help {
-    pub is_debug: bool,
-}
+pub struct Help;
 
 impl Help {
     pub fn execute(&self) -> Vec<CommandDescription> {
