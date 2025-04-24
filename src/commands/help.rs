@@ -23,12 +23,24 @@ impl Help {
         let mut result = vec![];
         for (name, description) in output {
             let lines = description.lines().collect::<Vec<_>>();
-            let description = lines[0];
             let usage = lines.iter().find(|line| line.starts_with("Usage:"));
+
+            // Parse description until the end or an empty line.
+            let description = lines
+                .iter()
+                .map_while(|line| {
+                    if !line.trim().is_empty() {
+                        Some(line.to_string())
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join("\n");
 
             result.push(CommandDescription {
                 name,
-                description: description.to_string(),
+                description,
                 usage: usage.map(|usage| usage.to_string()),
             });
         }
