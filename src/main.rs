@@ -147,10 +147,12 @@ fn print_full_help() {
     let cmds = Help.execute();
     for (i, cmd) in cmds.iter().enumerate() {
         if i > 0 {
-            help.push('\n');
+            help.push_str("\n\n")
         }
 
         let predicted_usage = format!("Usage: asimov-{} ", cmd.name);
+
+        let description = cmd.description.replace('\n', "\n\t");
 
         if let Some(usage) = cmd
             .usage
@@ -160,19 +162,19 @@ fn print_full_help() {
             // Usage string starts just as we expected. Skip it and print the arguments only.
 
             help.push_str(&color_print::cformat!(
-                "\t<dim>$</dim> <s>asimov {}</s> {} - {}",
+                "\t<dim>$</dim> <s>asimov {}</s> {}\n\t{}",
                 cmd.name,
                 usage,
-                cmd.description,
+                description,
             ));
         } else {
             // Either usage unavailable or it doesn't start with the expected string,
             // fallback to the default message.
 
             help.push_str(&color_print::cformat!(
-                "\t<dim>$</dim> <s>asimov {}</s> [OPTIONS] [COMMAND] - {}",
+                "\t<dim>$</dim> <s>asimov {}</s> [OPTIONS] [COMMAND]\n\t{}",
                 cmd.name,
-                cmd.description
+                description
             ));
         }
     }
