@@ -18,10 +18,10 @@ publish = true
 
 [features]
 default = ["all"]
-all = []
+all = ["fetch"]
 fetch = ["dep:asimov-proxy"]
 import = ["dep:asimov-proxy"]
-unstable = ["all", "fetch", "import"]
+unstable = ["import"]
 
 [build-dependencies]
 cfg_aliases = "0.2"
@@ -36,9 +36,9 @@ temp-dir = "0.1"
 indoc = "2.0"
 
 [dependencies]
-asimov-proxy = { version = "25.0.0-dev.3", optional = true }
+asimov-proxy = { version = "25.0.0-dev.4", optional = true }
 clap = { version = "4.5", default-features = false }
-clientele = "0.3"
+clientele = { version = "0.3.1", features = ["gofer"] }
 color-print = "=0.3.7"
 
 [[bin]]
