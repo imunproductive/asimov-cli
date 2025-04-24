@@ -58,7 +58,10 @@ pub fn main() -> SysexitsError {
     };
 
     // Parse command-line options:
-    let options = Options::parse_from(&args);
+    let Ok(options) = Options::try_parse_from(&args) else {
+        print_help();
+        return EX_OK;
+    };
 
     // Print the version, if requested:
     if options.flags.version {
