@@ -55,13 +55,8 @@ impl Help {
     fn collect_output(&self) -> Vec<(String, String)> {
         const MAX_WAIT_TIME: std::time::Duration = std::time::Duration::from_secs(1);
 
-        let commands = SubcommandsProvider::collect("asimov-", 1);
-
-        // FIXME: DIRTY DIRTY HACK!
-        // We need to clone the subcommands to obtain Vec<_> from SubcommandsProvider,
-        // since it doesn't implement into_iter() or into_vec().
-        // Fix it with a new release of `clientele`.
-        let commands = commands.iter().cloned().collect::<Vec<_>>();
+        let provider = SubcommandsProvider::collect("asimov-", 1);
+        let commands = provider.get_commands();
 
         let start_time = std::time::Instant::now();
 
