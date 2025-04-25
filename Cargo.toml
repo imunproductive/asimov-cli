@@ -36,10 +36,12 @@ temp-dir = "0.1"
 indoc = "2.0"
 
 [dependencies]
-asimov-proxy = { version = "25.0.0-dev.4", optional = true }
+asimov-proxy = { version = "25.0.0-dev.5", optional = true }
 clap = { version = "4.5", default-features = false }
-clientele = { version = "0.3.1", features = ["gofer"] }
+clientele = { version = "0.3.2", features = ["gofer"] }
 color-print = "=0.3.7"
+miette = { version = "7.5", features = ["fancy"] }
+thiserror = "2"
 
 [[bin]]
 name = "asimov"
