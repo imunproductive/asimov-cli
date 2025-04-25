@@ -40,7 +40,7 @@ asimov-proxy = { version = "25.0.0-dev.3", optional = true }
 clap = { version = "4.5", default-features = false }
 clientele = "0.3"
 color-print = "=0.3.7"
-rayon = "1.10.0"
+rayon = "1.10"
 
 [[bin]]
 name = "asimov"
