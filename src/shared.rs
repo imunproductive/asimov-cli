@@ -2,15 +2,12 @@
 
 use crate::Result;
 use asimov_env::paths::asimov_root;
-use asimov_module::{
-    models::ModuleManifest,
-    resolve::{Resolver, ResolverBuilder},
-};
+use asimov_module::{models::ModuleManifest, resolve::Resolver};
 use clientele::{Subcommand, SubcommandsProvider, SysexitsError::*};
 use miette::{miette, IntoDiagnostic};
 
 pub(crate) fn build_resolver(pattern: &str) -> miette::Result<Resolver> {
-    let mut builder = ResolverBuilder::new();
+    let mut resolver = Resolver::new();
 
     let module_dir_path = asimov_root().join("modules");
     let module_dir = std::fs::read_dir(&module_dir_path)
@@ -42,12 +39,12 @@ pub(crate) fn build_resolver(pattern: &str) -> miette::Result<Resolver> {
             continue;
         }
 
-        builder
+        resolver
             .insert_manifest(&manifest)
             .map_err(|e| miette!("{e}"))?;
     }
 
-    builder.build().map_err(|e| miette!("{e}"))
+    Ok(resolver)
 }
 
 /// Locates the given subcommand or prints an error.
